@@ -188,7 +188,11 @@ public class HomeServerDbContext(DbContextOptions options) : DbContext(options) 
 		modelBuilder.Entity<TradingAccount>().Property(x => x.TradingAccountId).ValueGeneratedOnAdd();
 		modelBuilder.Entity<TradingAccount>().HasKey(x => x.TradingAccountId);
 		modelBuilder.Entity<TradingAccountCategory>().HasKey(x => new { x.TradingAccountId, x.TradingAccountCategoryId});
-		modelBuilder.Entity<DailyAssetProgress>().HasKey(x => new { x.Date, x.InvestmentProductId });
+		modelBuilder.Entity<DailyAssetProgress>(entity => {
+			entity.HasKey(x => new { x.Date, x.InvestmentProductId });
+			// マテリアライズドビューとしてマッピング（EnsureCreated でテーブル作成をスキップ）
+			entity.ToView("DailyAssetProgresses");
+		});
 		modelBuilder.Entity<HealthCheckTarget>().HasKey(x => x.HealthCheckTargetId);
 		modelBuilder.Entity<HealthCheckTarget>().Property(x => x.HealthCheckTargetId).ValueGeneratedOnAdd();
 		modelBuilder.Entity<HealthCheckResult>().HasKey(x => x.HealthCheckResultId);
