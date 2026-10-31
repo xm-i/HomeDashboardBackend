@@ -19,11 +19,11 @@ node {
           usernameVariable: 'SSH_USER')]) {
 
       stage('Deploy'){
-        sh 'scp -pr -i ${SSH_KEY} ./Back/bin/Release/net10.0/* ${SSH_USER}@home-server.localnet:/opt/back-end-api-service'
+        sh 'scp -pr -i ${SSH_KEY} ./Back/bin/Release/net10.0/* ${SSH_USER}@home-server.internal:/opt/back-end-api-service'
       }
 
       stage('Restart'){
-        sh 'ssh home-server.localnet -t -l ${SSH_USER} -i ${SSH_KEY} sudo service back_end_api restart'
+        sh 'ssh home-server.internal -t -l ${SSH_USER} -i ${SSH_KEY} sudo service back_end_api restart'
       }
     }
 
