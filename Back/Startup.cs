@@ -1,5 +1,7 @@
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using Back.Hubs;
 using Back.Models.Common;
@@ -14,6 +16,7 @@ using DataBase;
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,14 +45,26 @@ public class Startup {
 		}
 	}
 
+	private string[] GetAllowedOrigins() {
+		return this.Configuration.GetSection("FrontOrigin").Get<string[]>()
+			?? (string.IsNullOrWhiteSpace(this.Configuration.GetSection("FrontOrigin").Value)
+				? []
+				: [this.Configuration.GetSection("FrontOrigin").Value!]);
+	}
+
 	// This method gets called by the runtime. Use this method to add services to the container.
 	// For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
 	public void ConfigureServices(IServiceCollection services) {
+		var allowedOrigins = this.GetAllowedOrigins();
+		Console.WriteLine($"許可Origin一覧: {string.Join(", ", allowedOrigins)}");
+
 		// クロスドメインの許可
 		services.AddCors(options => {
 			options.AddPolicy(this._crossOriginPolicyName, builder => {
 				builder.AllowCredentials();
-				builder.WithOrigins(this.Configuration.GetSection("FrontOrigin").Value!);
+				if (allowedOrigins.Length > 0) {
+					builder.WithOrigins(allowedOrigins);
+				}
 				builder.AllowAnyHeader();
 				builder.AllowAnyMethod();
 			});
@@ -81,7 +96,14 @@ public class Startup {
 	public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
 		if (env.IsDevelopment()) {
 			app.UseDeveloperExceptionPage();
+		} else {
+			app.UseHsts();
 		}
+
+		// リバースプロキシ配下での HTTPS / ホスト名 / IP 認識用
+		app.UseForwardedHeaders(new ForwardedHeadersOptions {
+			ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+		});
 
 		app.UseRouting();
 

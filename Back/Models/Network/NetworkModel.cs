@@ -88,7 +88,7 @@ public class NetworkModel(ILogger<NetworkModel> logger, HomeServerDbContext db, 
 			IDbContextTransaction? transaction = null;
 			try {
 				var client = this._clientFactory.CreateClient();
-				var csvByteArray = await client.GetByteArrayAsync("http://standards-oui.ieee.org/oui/oui.csv");
+				var csvByteArray = await client.GetByteArrayAsync("https://standards-oui.ieee.org/oui/oui.csv");
 
 				this._logger.LogInformation("ベンダーリストのダウンロード完了[{bytes}]bytes", csvByteArray.Length);
 				progress.Report(90);
